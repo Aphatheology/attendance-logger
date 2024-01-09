@@ -14,6 +14,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -48,11 +51,15 @@ public class AuthService {
         StaffEntity staff = map2Entity(registerBody);
         this.staffRepository.save(staff);
 
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", staff.getRole());
+        extraClaims.put("id", staff.getId());
+
         return AuthenticationResponse.builder()
                 .id(staff.getId())
                 .email(staff.getEmail())
                 .fullname(staff.getFullname())
-                .token(this.jwtService.generateToken(staff))
+                .token(this.jwtService.generateToken(extraClaims, staff))
                 .build();
     }
 
@@ -62,8 +69,11 @@ public class AuthService {
         );
 
         var staff = this.staffRepository.findStaffByEmail(loginBody.getEmail()).orElseThrow();
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", staff.getRole());
+        extraClaims.put("id", staff.getId());
 
-        var jwtToken = this.jwtService.generateToken(staff);
+        var jwtToken = this.jwtService.generateToken(extraClaims, staff);
 
         return AuthenticationResponse.builder()
                 .id(staff.getId())

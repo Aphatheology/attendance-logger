@@ -1,8 +1,6 @@
 package com.aphatheology.attendancelogger.service;
 
 import com.aphatheology.attendancelogger.dto.AttendanceDto;
-import com.aphatheology.attendancelogger.dto.ClockInDto;
-import com.aphatheology.attendancelogger.dto.ClockOutDto;
 import com.aphatheology.attendancelogger.entity.AttendanceEntity;
 import com.aphatheology.attendancelogger.entity.StaffEntity;
 import com.aphatheology.attendancelogger.exception.ResourceNotFoundException;
@@ -13,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -49,13 +49,19 @@ public class AttendanceService {
         return map2Dto(attendance);
     }
 
-    public AttendanceDto clockIn(ClockInDto attendance) {
-        StaffEntity staff = this.staffRepository.findById(attendance.getStaffId()).orElseThrow(() ->
+    public AttendanceDto clockIn(Long staffId) {
+        StaffEntity staff = this.staffRepository.findById(staffId).orElseThrow(() ->
                 new ResourceNotFoundException("Staff Not Found"));
 
+        Optional<AttendanceEntity> previousAttendance = this.attendanceRepository.findDistinctByStaffAndDay(staff, LocalDate.now());
+
+        if(previousAttendance.isPresent()) {
+            return map2Dto(previousAttendance.get());
+        }
+
         AttendanceEntity attendanceEntity = new AttendanceEntity();
-        attendanceEntity.setTimeIn(attendance.getTimeIn());
-        attendanceEntity.setDay(attendance.getDay());
+        attendanceEntity.setTimeIn(LocalTime.now());
+        attendanceEntity.setDay(LocalDate.now());
         attendanceEntity.setStaff(staff);
 
         this.attendanceRepository.save(attendanceEntity);
@@ -63,11 +69,14 @@ public class AttendanceService {
         return map2Dto(attendanceEntity);
     }
 
-    public AttendanceDto clockOut(Long attendanceId, ClockOutDto clockOut) {
-        AttendanceEntity attendance = this.attendanceRepository.findById(attendanceId).orElseThrow(() ->
-                new ResourceNotFoundException("Attendance Not Found"));
+    public AttendanceDto clockOut(Principal principal) {
+        StaffEntity staff = this.staffRepository.findByEmail(principal.getName()).orElseThrow(() ->
+                new ResourceNotFoundException("Staff Not Found"));
 
-        attendance.setTimeOut(clockOut.getTimeOut());
+        AttendanceEntity attendance = this.attendanceRepository.findDistinctByStaffAndDay(staff, LocalDate.now()).orElseThrow(() ->
+                new ResourceNotFoundException("Attendance Log Not Found"));
+
+        attendance.setTimeOut(LocalTime.now());
 
         this.attendanceRepository.save(attendance);
 
