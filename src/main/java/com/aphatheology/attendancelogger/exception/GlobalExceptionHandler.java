@@ -29,26 +29,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleSecurityException(Exception exception) {
-        ProblemDetail errorDetail = null;
+        ProblemDetail errorDetail;
 
         if(exception instanceof BadCredentialsException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
             errorDetail.setProperty("message", "Incorrect Email or Password");
-        }
-
-        if(exception instanceof AccessDeniedException) {
+        } else if(exception instanceof AccessDeniedException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, exception.getMessage());
             errorDetail.setProperty("message", "You are not authorized to access this resource");
-        }
-
-        if(exception instanceof SignatureException) {
+        } else if(exception instanceof SignatureException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
             errorDetail.setProperty("message", "Invalid Token");
-        }
-
-        if(exception instanceof ExpiredJwtException) {
+        } else if(exception instanceof ExpiredJwtException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
             errorDetail.setProperty("message", "Expired token");
+        } else {
+            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage());
+            errorDetail.setProperty("message", "Internal Server Error");
         }
 
         return errorDetail;
