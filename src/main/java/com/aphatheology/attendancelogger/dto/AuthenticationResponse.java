@@ -1,5 +1,6 @@
 package com.aphatheology.attendancelogger.dto;
 
+import com.aphatheology.attendancelogger.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +14,6 @@ public class AuthenticationResponse {
     private Long id;
     private String email;
     private String fullname;
+    private Role role;
     private String token;
 }

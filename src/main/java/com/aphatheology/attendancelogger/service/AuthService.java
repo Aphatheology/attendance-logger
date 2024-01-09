@@ -59,6 +59,7 @@ public class AuthService {
                 .id(staff.getId())
                 .email(staff.getEmail())
                 .fullname(staff.getFullname())
+                .role(staff.getRole())
                 .token(this.jwtService.generateToken(extraClaims, staff))
                 .build();
     }

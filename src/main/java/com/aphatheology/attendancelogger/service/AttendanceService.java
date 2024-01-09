@@ -8,13 +8,11 @@ import com.aphatheology.attendancelogger.repository.AttendanceRepository;
 import com.aphatheology.attendancelogger.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,8 +47,8 @@ public class AttendanceService {
         return map2Dto(attendance);
     }
 
-    public AttendanceDto clockIn(Long staffId) {
-        StaffEntity staff = this.staffRepository.findById(staffId).orElseThrow(() ->
+    public AttendanceDto clockIn(Principal principal) {
+        StaffEntity staff = this.staffRepository.findByEmail(principal.getName()).orElseThrow(() ->
                 new ResourceNotFoundException("Staff Not Found"));
 
         Optional<AttendanceEntity> previousAttendance = this.attendanceRepository.findDistinctByStaffAndDay(staff, LocalDate.now());
@@ -61,6 +59,7 @@ public class AttendanceService {
 
         AttendanceEntity attendanceEntity = new AttendanceEntity();
         attendanceEntity.setTimeIn(LocalTime.now());
+        attendanceEntity.setTimeOut(LocalTime.now());
         attendanceEntity.setDay(LocalDate.now());
         attendanceEntity.setStaff(staff);
 
@@ -77,7 +76,6 @@ public class AttendanceService {
                 new ResourceNotFoundException("Attendance Log Not Found"));
 
         attendance.setTimeOut(LocalTime.now());
-
         this.attendanceRepository.save(attendance);
 
         return map2Dto(attendance);
