@@ -24,3 +24,5 @@ app:
   jwt:
     secret-key: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}
+  mail:
+      from: ${EMAIL_FROM}

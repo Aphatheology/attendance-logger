@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,6 +15,8 @@ import org.thymeleaf.context.Context;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+    @Value("${app.mail.from}")
+    private String EMAIL_FROM;
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -45,7 +48,7 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();
 
         try {
-            message.setFrom(new InternetAddress("devmustapha2@gmail.com"));
+            message.setFrom(new InternetAddress(EMAIL_FROM));
             message.setRecipients(MimeMessage.RecipientType.TO, to);
             message.setSubject(subject);
 
